@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 export default function App() {
@@ -7,8 +7,19 @@ export default function App() {
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
 
+  // LOAD CART
+  useEffect(() => {
+    const saved = localStorage.getItem("cart");
+    if (saved) setCart(JSON.parse(saved));
+  }, []);
+
+  // SAVE CART
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
   const add = (name, price) => {
-    setCart([...cart, { name, price }]);
+    setCart(prev => [...prev, { name, price }]);
   };
 
   const total = cart.reduce((a, b) => a + b.price, 0);
@@ -23,14 +34,13 @@ export default function App() {
     });
 
     setCart([]);
-    setAddress("");
-    setPhone("");
+    localStorage.removeItem("cart");
     setStep("done");
   };
 
   return (
     <div style={{ padding: 20, fontFamily: "sans-serif" }}>
-      <h1>🍣 Sushi App</h1>
+      <h1>🍣 Sushi Wolt</h1>
 
       {step === "menu" && (
         <>
@@ -43,11 +53,13 @@ export default function App() {
           <hr />
 
           <h2>🛒 Корзина</h2>
+          {cart.length === 0 ? <p>Пусто</p> : null}
+
           {cart.map((i, idx) => (
             <p key={idx}>{i.name} - {i.price}€</p>
           ))}
 
-          <h3>Total: {total}€</h3>
+          <h3>💰 Total: {total}€</h3>
 
           {cart.length > 0 && (
             <button onClick={() => setStep("checkout")}>
@@ -59,7 +71,7 @@ export default function App() {
 
       {step === "checkout" && (
         <>
-          <h2>📦 Оформление</h2>
+          <h2>📦 Доставка</h2>
 
           <input
             placeholder="Адрес"
@@ -75,12 +87,19 @@ export default function App() {
           />
           <br /><br />
 
-          <button onClick={checkout}>Отправить заказ</button>
+          <button onClick={checkout}>
+            Подтвердить заказ
+          </button>
         </>
       )}
 
       {step === "done" && (
-        <h2>✅ Заказ отправлен!</h2>
+        <>
+          <h2>✅ Заказ принят</h2>
+          <button onClick={() => setStep("menu")}>
+            Вернуться в меню
+          </button>
+        </>
       )}
     </div>
   );
